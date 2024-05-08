@@ -6,7 +6,9 @@ static GtkWidget *input_edit;
 static GtkWidget *output_edit;
 
 static void calculate_md5(){
-    const gchar* data = gtk_entry_get_text(GTK_ENTRY(input_edit));
+    GtkEntryBuffer* in_entry = gtk_entry_get_buffer(GTK_ENTRY(input_edit));
+
+    const gchar* data = gtk_entry_buffer_get_text(in_entry);
     printf("Data for hashing: %s\n", data);
     char* out_data = md5(data, strlen(data));
     char buffer[33] = {0};
@@ -14,7 +16,9 @@ static void calculate_md5(){
     for ( i = 0; i< 16; ++i ){
         sprintf(buffer+2*i, "%02x", out_data[i]&0xFF);
     }
-    gtk_entry_set_text(GTK_ENTRY(output_edit), buffer);
+
+    GtkEntryBuffer* output_data = gtk_entry_get_buffer(GTK_ENTRY(output_edit));
+    gtk_entry_buffer_set_text(output_data, buffer, 32);
     free(out_data);
 }
 
@@ -32,21 +36,21 @@ activate (GtkApplication *app,
     gtk_window_set_resizable(GTK_WINDOW(window), 0);
 
     list_layout = gtk_list_box_new();
-    gtk_container_add(GTK_CONTAINER(window), list_layout);
+    gtk_window_set_child(GTK_WINDOW(window), list_layout);
 
     input_edit = gtk_entry_new();
-    gtk_container_add(GTK_CONTAINER(list_layout), input_edit);
+    gtk_list_box_insert(GTK_LIST_BOX(list_layout), input_edit, 0);
 
     output_edit = gtk_entry_new();
     gtk_editable_set_editable(GTK_EDITABLE(output_edit), 0);
-    gtk_container_add(GTK_CONTAINER(list_layout), output_edit);
+    gtk_list_box_insert(GTK_LIST_BOX(list_layout), output_edit, 1);
 
     solve_button = gtk_button_new_with_label("Calculate MD5");
-    gtk_container_add(GTK_CONTAINER(list_layout), solve_button);
+    gtk_list_box_insert(GTK_LIST_BOX(list_layout), solve_button,2);
 
     g_signal_connect(solve_button, "clicked", G_CALLBACK(calculate_md5), NULL);
 
-    gtk_widget_show_all (window);
+    gtk_widget_show (window);
 }
 
 int
